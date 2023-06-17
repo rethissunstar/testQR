@@ -28,7 +28,7 @@ let borrowBook = {
   qrCode: ''
 };
 
-// Connect to the neighborhoodlib_db
+
 neighbourhoodlibDb.connect((err) => {
   if (err) {
     console.error('Error connecting to the neighborhoodlib_db: ' + err.stack);
@@ -36,21 +36,20 @@ neighbourhoodlibDb.connect((err) => {
   }
   console.log('Connected to the neighborhoodlib_db');
 
-  // Query the database to get the values
   neighbourhoodlibDb.query('SELECT title, bookStatus, bookOwner FROM books', (err, results) => {
     if (err) {
       console.error('Error retrieving data from the neighborhoodlib_db: ' + err);
       return;
     }
 
-    // Check if there are any results
+
     if (results.length > 0) {
-      const book = results[0]; // Assuming you want to retrieve the first book from the results
+      const book = results[0];
       borrowBook.bookTitle = book.title;
       borrowBook.bookStatus = book.bookStatus;
       borrowBook.bookOwner = book.bookOwner;
 
-      // Generate QR code
+
       qrcode.toDataURL(JSON.stringify(borrowBook), (err, qrData) => {
         if (err) {
           console.error('Error generating QR code: ' + err);
@@ -58,10 +57,9 @@ neighbourhoodlibDb.connect((err) => {
         }
         borrowBook.qrCode = qrData;
 
-        // Print the borrowBook object with the retrieved values
         console.log(borrowBook);
 
-        // Insert borrowBook into mylinks_db
+       
         mylinksDb.query('INSERT INTO bookMarks (title, siteQR) VALUES (?, ?)', [borrowBook.bookTitle, borrowBook.qrCode], (err, results) => {
           if (err) {
             console.error('Error inserting data into the mylinks_db: ' + err);
