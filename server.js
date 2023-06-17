@@ -74,7 +74,25 @@ neighbourhoodlibDb.connect((err) => {
       console.log('No books found in the neighborhoodlib_db');
     }
   });
+  app.get('/', (req, res) => {
+    mylinksDb.query('SELECT * FROM bookMarks', (err, results) => {
+      if (err) {
+        console.error('Error retrieving data from bookMarks: ' + err);
+        return res.status(500).send('Internal Server Error');
+      }
+  
+      let qrHtml = '';
+  
+      results.forEach((row) => {
+        qrHtml += `<h2>${row.title}</h2><img src="${row.siteQR}" alt="QR Code">`;
+      });
+  
+      res.send(qrHtml);
+    });
+  });
 });
+
+
 
 app.listen(3001, () => {
   console.log('Server running on port 3001');
