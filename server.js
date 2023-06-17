@@ -3,6 +3,7 @@ const express = require('express');
 const qrcode = require('qrcode');
 
 const app = express();
+const PORT = process.env.PORT || 3001;
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -92,6 +93,6 @@ neighbourhoodlibDb.connect((err) => {
 
 
 
-app.listen(3001, () => {
+app.listen(PORT, () => {
   console.log('Server running on port 3001');
 });
