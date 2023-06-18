@@ -15,19 +15,9 @@ const neighbourhoodlibDb = mysql.createConnection({
   database: 'neighborhoodlib_db'
 });
 
-const mylinksDb = mysql.createConnection({
-  host: 'localhost',
-  user: 'userp2',
-  password: 'P212345.',
-  database: 'mylinks_db'
-});
 
-let borrowBook = {
-  bookTitle: '',
-  bookStatus: '',
-  bookOwner: '',
-  qrCode: ''
-};
+let reference = '';
+let borrowBook = 'http://PCiP/loanApproval/';  //this has to be updated to the heroku site
 
 
 neighbourhoodlibDb.connect((err) => {
@@ -37,7 +27,7 @@ neighbourhoodlibDb.connect((err) => {
   }
   console.log('Connected to the neighborhoodlib_db');
 
-  neighbourhoodlibDb.query('SELECT title, bookStatus, bookOwner FROM books', (err, results) => {
+  neighbourhoodlibDb.query('SELECT refNum FROM booksout order by refNum DESC LIMIT 1;', (err, results) => {
     if (err) {
       console.error('Error retrieving data from the neighborhoodlib_db: ' + err);
       return;
@@ -45,50 +35,36 @@ neighbourhoodlibDb.connect((err) => {
 
 
     if (results.length > 0) {
-      const book = results[0];
-      borrowBook.bookTitle = book.title;
-      borrowBook.bookStatus = book.bookStatus;
-      borrowBook.bookOwner = book.bookOwner;
+      reference = results[0].refNum;
+    
 
 
-      qrcode.toDataURL(JSON.stringify(borrowBook), (err, qrData) => {
-        if (err) {
-          console.error('Error generating QR code: ' + err);
-          return;
-        }
-        borrowBook.qrCode = qrData;
-
-        console.log(borrowBook);
-
-       
-        mylinksDb.query('INSERT INTO bookMarks (title, siteQR) VALUES (?, ?)', [borrowBook.bookTitle, borrowBook.qrCode], (err, results) => {
-          if (err) {
-            console.error('Error inserting data into the mylinks_db: ' + err);
-            return;
-          }
-          console.log('Successfully inserted data into the mylinks_db');
-        });
+      qrcode.toFile('./' + JSON.stringify(reference)+'.png', borrowBook + JSON.stringify(reference), {
+        errorCorrectionLevel: 'H'
+      }, function(err) {
+        if (err) throw err;
+        console.log('QR code saved!');
       });
     } else {
       console.log('No books found in the neighborhoodlib_db');
     }
   });
-  app.get('/', (req, res) => {
-    mylinksDb.query('SELECT * FROM bookMarks', (err, results) => {
-      if (err) {
-        console.error('Error retrieving data from bookMarks: ' + err);
-        return res.status(500).send('Internal Server Error');
-      }
+  // app.get('/', (req, res) => {
+  //   mylinksDb.query('SELECT * FROM bookMarks', (err, results) => {
+  //     if (err) {
+  //       console.error('Error retrieving data from bookMarks: ' + err);
+  //       return res.status(500).send('Internal Server Error');
+  //     }
   
-      let qrHtml = '';
+  //     let qrHtml = '';
   
-      results.forEach((row) => {
-        qrHtml += `<h2>${row.title}</h2><img src="${row.siteQR}" alt="QR Code">`;
-      });
+  //     results.forEach((row) => {
+  //       qrHtml += `<h2>${row.title}</h2><img src="${row.siteQR}" alt="QR Code">`;
+  //     });
   
-      res.send(qrHtml);
-    });
-  });
+  //     res.send(qrHtml);
+  //   });
+  // });
 });
 
 
